@@ -213,14 +213,17 @@ begin
 							if ns then
 								PC <= to_integer(unsigned(operand));
 							end if;
+							current_state <= FETCH;
 						when BNC =>
 							if nc then
 								PC <= to_integer(unsigned(operand));
 							end if;
+							current_state <= FETCH;
 						when BNV =>
 							if no then
 								PC <= to_integer(unsigned(operand));
 							end if;
+							current_state <= FETCH;
 						when SLEEP =>
 							target_delay <= CLK_FREQ * to_integer(unsigned(operand));
 							current_state <= EXECUTE;
