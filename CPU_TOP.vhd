@@ -10,7 +10,7 @@ entity cpu_top is port(
 	sw      : in  std_logic_vector(1 downto 0);
 	leds    : out std_logic_vector(4 downto 0);
 	segments: out std_logic_vector(6 downto 0); -- a,b,c,d,e,f,g
-	digits  : out std_logic_vector(3 downto 0)  -- Dig 1, 2, 3,*/
+	digits  : out std_logic_vector(3 downto 0)  -- Dig 1, 2, 3,
 );
 
 end entity cpu_top;
@@ -33,7 +33,7 @@ architecture Behavioral of cpu_top is
 	signal alu_inA 				  : std_logic_vector(15 downto 0);
    signal alu_inB 				  : std_logic_vector(15 downto 0);
    signal alu_res 				  : std_logic_vector(15 downto 0);
-   signal carry, overflow, sign : std_logic;
+	signal nc, nz, no, ns        : std_logic;
 		
 	signal rom_addr    : integer range 0 to 255 := PC;
 	signal addr_operand: integer range 0 to 255;
@@ -65,9 +65,10 @@ begin
 		B        => alu_inB,
 		OP_SEL   => alu_op,
 		F_ARIT   => alu_res,
-		C_OUT    => carry,
-		OVF_OUT  => overflow,
-		SIGN_OUT => sign
+		C_OUT    => nc,
+		OVF_OUT  => no,
+		SIGN_OUT => ns,
+		Z_OUT    => nz
 	);
 	
 	U_CMP: entity work.COMPARATOR
@@ -203,8 +204,25 @@ begin
 								PC <= to_integer(unsigned(operand));
 							end if;
 							current_state <= FETCH;
+						when BNZ =>
+						   if nz then -- nz = 1 porque esta negada y la instrucción es salto si no
+								PC <= to_integer(unsigned(operand));
+							end if;
+							current_state <= FETCH;
+						when BNS =>
+							if ns then
+								PC <= to_integer(unsigned(operand));
+							end if;
+						when BNC =>
+							if nc then
+								PC <= to_integer(unsigned(operand));
+							end if;
+						when BNV =>
+							if no then
+								PC <= to_integer(unsigned(operand));
+							end if;
 						when SLEEP =>
-							target_delay <= CLK_FREQ * to_integer(unsigned(operand)); -- remember subs 1 (A)
+							target_delay <= CLK_FREQ * to_integer(unsigned(operand));
 							current_state <= EXECUTE;
 						when ON_LED =>
 							led := to_integer(unsigned(operand));
